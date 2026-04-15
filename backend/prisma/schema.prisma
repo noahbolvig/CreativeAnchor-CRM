@@ -1,0 +1,412 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER MANAGEMENT & AUTHENTICATION
+// ============================================
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  firstName         String
+  lastName          String
+  role              UserRole  @default(USER)
+  
+  // EU Business Info
+  businessName      String?
+  vatNumber         String?
+  address           String?
+  city              String?
+  postalCode        String?
+  country           String?   @default("Netherlands")
+  
+  // Founding Member Benefits
+  isFoundingMember  Boolean   @default(false)
+  discountPercent   Int       @default(0)
+  memberNumber      Int?      @unique
+  
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastLoginAt       DateTime?
+  
+  // Relations
+  clients           Client[]
+  projects          Project[]
+  feedbacks         Feedback[]
+  automations       Automation[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+// ============================================
+// WAITLIST SYSTEM (First 50 spots)
+// ============================================
+
+model WaitlistEntry {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  firstName     String?
+  lastName      String?
+  
+  // Position tracking
+  position      Int      @unique
+  joinedAt      DateTime @default(now())
+  
+  // Conversion tracking
+  isConverted   Boolean  @default(false)
+  convertedAt   DateTime?
+  userId        String?
+  
+  @@map("waitlist")
+}
+
+// ============================================
+// CLIENT MANAGEMENT
+// ============================================
+
+model Client {
+  id              String    @id @default(uuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Basic Info
+  name            String
+  email           String?
+  phone           String?
+  company         String?
+  website         String?
+  notes           String?   @db.Text
+  tags            String[]  @default([])
+  
+  // EU Client Info
+  vatNumber       String?
+  address         String?
+  city            String?
+  postalCode      String?
+  country         String?
+  
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  // Relations
+  projects        Project[]
+  files           File[]
+  invoices        Invoice[]  // ADDED THIS
+  
+  @@map("clients")
+  @@index([userId])
+}
+
+// ============================================
+// PROJECT MANAGEMENT (Visual Pipeline)
+// ============================================
+
+model Project {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId        String
+  client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Project Details
+  title           String
+  description     String?       @db.Text
+  creativeBrief   String?       @db.Text
+  
+  // Visual Pipeline Status
+  status          ProjectStatus @default(IDEA)
+  priority        Priority      @default(MEDIUM)
+  
+  // Financial
+  budget          Float?
+  quotedAmount    Float?
+  finalAmount     Float?
+  
+  // Dates
+  startDate       DateTime?
+  deadline        DateTime?
+  completedDate   DateTime?
+  
+  // Tracking
+  position        Int           @default(0)
+  color           String?
+  
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  files           File[]
+  revisions       Revision[]
+  invoices        Invoice[]
+  
+  @@map("projects")
+  @@index([userId, status])
+  @@index([clientId])
+}
+
+enum ProjectStatus {
+  IDEA
+  QUOTE
+  APPROVED
+  IN_PROGRESS
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// ============================================
+// FILE & REVISION MANAGEMENT
+// ============================================
+
+model File {
+  id              String    @id @default(uuid())
+  
+  // Relations
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clientId        String?
+  client          Client?   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // File Info
+  fileName        String
+  originalName    String
+  fileUrl         String
+  fileSize        Int
+  fileType        String
+  category        String?
+  
+  // Metadata
+  uploadedAt      DateTime  @default(now())
+  
+  // Relations
+  revisions       Revision[]
+  
+  @@map("files")
+  @@index([projectId])
+  @@index([clientId])
+}
+
+model Revision {
+  id              String          @id @default(uuid())
+  
+  // Relations
+  projectId       String
+  project         Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fileId          String
+  file            File            @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  
+  // Revision Details
+  versionNumber   Int
+  comment         String?         @db.Text
+  status          RevisionStatus  @default(PENDING)
+  
+  // Client Feedback
+  clientFeedback  String?         @db.Text
+  
+  // Timestamps
+  createdAt       DateTime        @default(now())
+  approvedAt      DateTime?
+  rejectedAt      DateTime?
+  
+  @@map("revisions")
+  @@index([projectId])
+  @@unique([fileId, versionNumber])
+}
+
+enum RevisionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CHANGES_REQUESTED
+}
+
+// ============================================
+// INVOICE MANAGEMENT (EU Compliant)
+// ============================================
+
+model Invoice {
+  id              String        @id @default(uuid())
+  
+  // Relations - UPDATED
+  clientId        String
+  client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId       String?
+  project         Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  
+  // Invoice Details
+  invoiceNumber   String        @unique
+  status          InvoiceStatus @default(DRAFT)
+  
+  // Amounts (EU compliant)
+  subtotal        Float
+  vatRate         Float?        @default(21.0)
+  vatAmount       Float
+  amount          Float
+  reverseCharge   Boolean       @default(false)
+  
+  // Dates
+  issueDate       DateTime
+  dueDate         DateTime?
+  paidDate        DateTime?
+  
+  // Additional
+  notes           String?       @db.Text
+  paymentMethod   String?
+  
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  items           InvoiceItem[]
+  
+  @@map("invoices")
+  @@index([clientId])
+  @@index([projectId])
+  @@index([status])
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  description String
+  quantity    Int      @default(1)
+  unitPrice   Float
+  amount      Float
+  vatRate     Float    @default(21.0)
+  order       Int      @default(0)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([order])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// ============================================
+// SMART AUTOMATION
+// ============================================
+
+model Automation {
+  id              String          @id @default(uuid())
+  
+  // Relations
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Automation Details
+  name            String
+  type            AutomationType
+  isActive        Boolean         @default(true)
+  
+  // Configuration
+  triggerConfig   String          @db.Text
+  actionConfig    String          @db.Text
+  
+  // Schedule
+  schedule        String?
+  lastRun         DateTime?
+  nextRun         DateTime?
+  runCount        Int             @default(0)
+  
+  // Timestamps
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@map("automations")
+  @@index([userId, isActive])
+}
+
+enum AutomationType {
+  DEADLINE_REMINDER
+  INVOICE_FOLLOWUP
+  PROJECT_UPDATE
+  CLIENT_FEEDBACK
+  REVISION_REMINDER
+  CUSTOM
+}
+
+// ============================================
+// FEEDBACK & COMMUNITY-DRIVEN DEVELOPMENT
+// ============================================
+
+model Feedback {
+  id              String          @id @default(uuid())
+  
+  // Relations
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Feedback Details
+  category        FeedbackCategory
+  title           String
+  description     String          @db.Text
+  priority        Priority        @default(MEDIUM)
+  status          FeedbackStatus  @default(SUBMITTED)
+  
+  // Community Voting
+  votes           Int             @default(0)
+  
+  // Admin Response
+  adminResponse   String?         @db.Text
+  
+  // Timestamps
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  completedAt     DateTime?
+  
+  @@map("feedbacks")
+  @@index([userId])
+  @@index([status])
+  @@index([votes])
+}
+
+enum FeedbackCategory {
+  FEATURE_REQUEST
+  BUG_REPORT
+  IMPROVEMENT
+  UI_UX
+  PERFORMANCE
+  OTHER
+}
+
+enum FeedbackStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  DECLINED
+}
