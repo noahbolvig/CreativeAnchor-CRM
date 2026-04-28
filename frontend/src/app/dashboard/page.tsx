@@ -335,19 +335,19 @@ export default function DashboardPage() {
                       tickFormatter={(value) => `€${(value/1000).toFixed(0)}k`}
                     />
                     <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: '#fff', 
-                        border: '2px solid #e5e7eb',
-                        borderRadius: '12px',
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                        padding: '12px',
-                      }}
-                      formatter={(value: any) => {
-                        const numValue = typeof value === 'number' ? value : 0;
-                        return [`€${numValue.toLocaleString()}`, 'Revenue'];
-                      }}
-                      labelStyle={{ fontWeight: 600, marginBottom: '4px' }}
-                    />
+  contentStyle={{ 
+    backgroundColor: '#fff', 
+    border: '2px solid #e5e7eb',
+    borderRadius: '12px',
+    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+    padding: '12px',
+  }}
+  formatter={(value: any) => {
+    const numValue = typeof value === 'number' ? value : 0;
+    return [`€${numValue.toLocaleString()}`, 'Revenue'];
+  }}
+  labelStyle={{ fontWeight: 600, marginBottom: '4px' }}
+/>
                     <Bar 
                       dataKey="revenue" 
                       fill="#3B82F6" 
