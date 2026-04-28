@@ -23,7 +23,6 @@ import {
   Zap,
   Plus,
   Loader2,
-  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -343,7 +342,7 @@ export default function DashboardPage() {
                         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                         padding: '12px',
                       }}
-                      formatter={(value: number | string | Array<number | string> | undefined) => {
+                      formatter={(value: any) => {
                         const numValue = typeof value === 'number' ? value : 0;
                         return [`€${numValue.toLocaleString()}`, 'Revenue'];
                       }}
