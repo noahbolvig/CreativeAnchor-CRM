@@ -282,12 +282,6 @@ export default function ClientDetailPage() {
                     </div>
                   )}
 
-                  {client.notes && (
-                    <div className="pt-4 border-t-2 border-gray-200">
-                      <p className="text-sm font-medium text-gray-600 mb-2">Notes</p>
-                      <p className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">{client.notes}</p>
-                    </div>
-                  )}
 
                   <div className="pt-4 border-t-2 border-gray-200">
                     <p className="text-sm font-medium text-gray-600 mb-1">Client since</p>
