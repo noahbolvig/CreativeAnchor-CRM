@@ -2,13 +2,17 @@ import api from './api';
 
 export interface Client {
   id: string;
+  userId: string;
   name: string;
-  email?: string;
+  email: string;
   phone?: string;
   company?: string;
   website?: string;
-  notes?: string;
-  tags: string[];
+  vatNumber?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
   createdAt: string;
   updatedAt: string;
   projects?: any[];
@@ -19,12 +23,15 @@ export interface Client {
 
 export interface CreateClientData {
   name: string;
-  email?: string;
+  email: string;
   phone?: string;
   company?: string;
   website?: string;
-  notes?: string;
-  tags?: string[];
+  vatNumber?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
 }
 
 export const clientService = {
