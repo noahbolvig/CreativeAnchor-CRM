@@ -58,14 +58,14 @@ export default function EditInvoicePage() {
 
       setProjects(projectsData);
       setFormData({
-  projectId: invoiceData.projectId || '',
-  invoiceNumber: invoiceData.invoiceNumber,
-  status: invoiceData.status,
-  notes: invoiceData.notes || '',
-  dueDate: invoiceData.dueDate ? invoiceData.dueDate.split('T')[0] : '',
-  vatRate: invoiceData.vatRate || 21,
-  reverseCharge: invoiceData.reverseCharge || false,
-});
+        projectId: invoiceData.projectId || '',
+        invoiceNumber: invoiceData.invoiceNumber || '',
+        status: invoiceData.status || 'DRAFT',
+        notes: invoiceData.notes || '',
+        dueDate: invoiceData.dueDate ? invoiceData.dueDate.split('T')[0] : '',
+        vatRate: invoiceData.vatRate || 21,
+        reverseCharge: invoiceData.reverseCharge || false,
+      });
 
       if (invoiceData.items && invoiceData.items.length > 0) {
         setItems(invoiceData.items.map(item => ({
