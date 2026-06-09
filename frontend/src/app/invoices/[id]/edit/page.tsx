@@ -138,14 +138,17 @@ export default function EditInvoicePage() {
     }
 
     try {
-      await invoiceService.update(params.id as string, {
-        ...formData,
-        amount: total,
-        items: items.map((item, index) => ({
-          ...item,
-          order: index,
-        })),
-      });
+    await invoiceService.update(params.id as string, {
+  ...formData,
+  items: items.map((item, index) => ({
+    description: item.description,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    vatRate: item.vatRate,
+    amount: item.amount,
+    order: index,
+  })),
+});
       toast.success('Invoice updated successfully');
       router.push('/invoices/' + params.id);
     } catch (err: any) {
