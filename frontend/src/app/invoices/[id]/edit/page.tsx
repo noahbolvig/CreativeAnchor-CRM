@@ -68,13 +68,13 @@ export default function EditInvoicePage() {
       });
 
       if (invoiceData.items && invoiceData.items.length > 0) {
-        setItems(invoiceData.items.map(item => ({
-          description: item.description,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          vatRate: item.vatRate || 21,
-          amount: item.amount,
-        })));
+      setItems(invoiceData.items.map(item => ({
+  description: item.description,
+  quantity: item.quantity,
+  unitPrice: item.unitPrice,
+  vatRate: item.vatRate || 21,
+  amount: item.amount || 0,
+})));
       } else {
         setItems([{
           description: invoiceData.project?.title || '',
