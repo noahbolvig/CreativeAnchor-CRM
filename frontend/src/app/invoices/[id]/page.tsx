@@ -464,64 +464,64 @@ const displayVatRate = (() => {
             </div>
 
             {/* Bill To & Invoice Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-              {/* Bill To */}
-              <div>
-                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Bill To</p>
-                {invoice.client ? (
-                  <div className="space-y-1">
-                    <p className="text-lg font-semibold text-gray-900">{invoice.client.name}</p>
-                    {invoice.client.company && <p className="text-gray-900">{invoice.client.company}</p>}
-                    {invoice.client.address && <p className="text-gray-900">{invoice.client.address}</p>}
-                    {(invoice.client.postalCode || invoice.client.city) && (
-                      <p className="text-gray-900">
-                        {invoice.client.postalCode} {invoice.client.city}
-                      </p>
-                    )}
-                    {invoice.client.country && <p className="text-gray-900">{invoice.client.country}</p>}
-                    {invoice.client.email && <p className="text-gray-600 mt-2">{invoice.client.email}</p>}
-                    {invoice.client.vatNumber && (
-                      <p className="text-gray-900 font-semibold mt-2">VAT: {invoice.client.vatNumber}</p>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-gray-400 italic">No client information</p>
-                )}
-              </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+  {/* Bill To */}
+  <div>
+    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Bill To</p>
+    {invoice.client ? (
+      <div className="space-y-1">
+        <p className="text-lg font-semibold text-gray-900">{invoice.client.name}</p>
+        {invoice.client.company && <p className="text-gray-900">{invoice.client.company}</p>}
+        {(invoice.client as any).address && <p className="text-gray-900">{(invoice.client as any).address}</p>}
+        {((invoice.client as any).postalCode || (invoice.client as any).city) && (
+          <p className="text-gray-900">
+            {(invoice.client as any).postalCode} {(invoice.client as any).city}
+          </p>
+        )}
+        {invoice.client.country && <p className="text-gray-900">{invoice.client.country}</p>}
+        {invoice.client.email && <p className="text-gray-600 mt-2">{invoice.client.email}</p>}
+        {invoice.client.vatNumber && (
+          <p className="text-gray-900 font-semibold mt-2">VAT: {invoice.client.vatNumber}</p>
+        )}
+      </div>
+    ) : (
+      <p className="text-gray-400 italic">No client information</p>
+    )}
+  </div>
 
-              {/* Invoice Details */}
-              <div className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl space-y-3 border-2 border-gray-200 print:bg-gray-50 print:border-gray-300">
-                {invoice.project && (
-                  <div className="flex justify-between gap-4">
-                    <span className="text-gray-700 font-medium">Project:</span>
-                    <span className="font-semibold text-gray-900 text-right">{invoice.project.title}</span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-gray-700 font-medium">Issue Date:</span>
-                  <span className="font-semibold text-gray-900">
-                    {new Date(invoice.issueDate).toLocaleDateString('en-GB')}
-                  </span>
-                </div>
-                {invoice.dueDate && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-700 font-medium">Due Date:</span>
-                    <span className={`font-semibold ${isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
-                      {new Date(invoice.dueDate).toLocaleDateString('en-GB')}
-                      {isOverdue && ' (Overdue)'}
-                    </span>
-                  </div>
-                )}
-                {invoice.status === 'PAID' && invoice.paidDate && (
-                  <div className="flex justify-between pt-2 border-t-2 border-emerald-300">
-                    <span className="text-emerald-700 font-medium">Paid Date:</span>
-                    <span className="font-semibold text-emerald-700">
-                      {new Date(invoice.paidDate).toLocaleDateString('en-GB')}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
+  {/* Invoice Details */}
+  <div className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl space-y-3 border-2 border-gray-200 print:bg-gray-50 print:border-gray-300">
+    {invoice.project && (
+      <div className="flex justify-between gap-4">
+        <span className="text-gray-700 font-medium">Project:</span>
+        <span className="font-semibold text-gray-900 text-right">{invoice.project.title}</span>
+      </div>
+    )}
+    <div className="flex justify-between">
+      <span className="text-gray-700 font-medium">Issue Date:</span>
+      <span className="font-semibold text-gray-900">
+        {new Date(invoice.issueDate).toLocaleDateString('en-GB')}
+      </span>
+    </div>
+    {invoice.dueDate && (
+      <div className="flex justify-between">
+        <span className="text-gray-700 font-medium">Due Date:</span>
+        <span className={`font-semibold ${isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
+          {new Date(invoice.dueDate).toLocaleDateString('en-GB')}
+          {isOverdue && ' (Overdue)'}
+        </span>
+      </div>
+    )}
+    {invoice.status === 'PAID' && invoice.paidDate && (
+      <div className="flex justify-between pt-2 border-t-2 border-emerald-300">
+        <span className="text-emerald-700 font-medium">Paid Date:</span>
+        <span className="font-semibold text-emerald-700">
+          {new Date(invoice.paidDate).toLocaleDateString('en-GB')}
+        </span>
+      </div>
+    )}
+  </div>
+</div>
 
             {/* Line Items Table */}
             {invoice.items && invoice.items.length > 0 ? (
