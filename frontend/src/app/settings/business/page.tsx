@@ -10,7 +10,7 @@ import Link from 'next/link';
 import api from '@/services/api';
 
 export default function BusinessSettingsPage() {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -63,12 +63,6 @@ export default function BusinessSettingsPage() {
 
     try {
       await api.put('/auth/profile', formData);
-      
-      // Refresh user context
-      if (refreshUser) {
-        await refreshUser();
-      }
-      
       toast.success('Business settings saved successfully');
     } catch (err: any) {
       console.error('Update error:', err);
@@ -83,11 +77,11 @@ export default function BusinessSettingsPage() {
     return vatPattern.test(vat.replace(/\s/g, ''));
   };
 
-  const isFormValid = formData.businessName && 
-                      formData.vatNumber && 
-                      formData.address && 
-                      formData.city && 
-                      formData.postalCode && 
+  const isFormValid = formData.businessName &&
+                      formData.vatNumber &&
+                      formData.address &&
+                      formData.city &&
+                      formData.postalCode &&
                       formData.country;
 
   const vatValid = formData.vatNumber ? validateVatNumber(formData.vatNumber) : true;
@@ -138,7 +132,7 @@ export default function BusinessSettingsPage() {
               <div>
                 <h3 className="font-semibold text-blue-900 mb-1">🇪🇺 EU Invoice Requirements</h3>
                 <p className="text-sm text-blue-800 leading-relaxed">
-                  Your VAT number and complete business address are <strong>legally required</strong> on all EU invoices. 
+                  Your VAT number and complete business address are <strong>legally required</strong> on all EU invoices.
                   This information will be displayed on every invoice you generate and must be accurate.
                 </p>
               </div>
@@ -182,9 +176,11 @@ export default function BusinessSettingsPage() {
 
                 {/* VAT Number */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-gray-600" />
-                    VAT Number * <span className="text-gray-500 font-normal">(BTW-nummer / Tax ID)</span>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">
+                    <span className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-gray-600" />
+                      VAT Number * <span className="text-gray-500 font-normal">(BTW-nummer / Tax ID)</span>
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -325,7 +321,7 @@ export default function BusinessSettingsPage() {
                   <Eye className="h-5 w-5 text-gray-700" />
                   <h3 className="font-semibold text-gray-900">Invoice Preview</h3>
                 </div>
-                
+
                 <div className="bg-white rounded-lg p-5 border-2 border-gray-200 shadow-sm">
                   <div className="text-sm space-y-2">
                     <p className="text-lg font-bold text-gray-900 mb-3">
