@@ -128,10 +128,7 @@ export default function InvoiceDetailPage() {
     setActionLoading(true);
     try {
       const result = await emailService.sendInvoiceEmail({ invoiceId: invoice.id });
-      
-      // Reload invoice to get updated status
       await loadInvoice();
-      
       toast.success(result.message || `Invoice sent successfully to ${invoice.client?.email}`);
       setShowEmailModal(false);
     } catch (err: any) {
@@ -186,18 +183,13 @@ export default function InvoiceDetailPage() {
         throw new Error('Failed to download PDF');
       }
 
-      // Get the PDF blob
       const blob = await response.blob();
-      
-      // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${invoice.invoiceNumber}.pdf`;
       document.body.appendChild(link);
       link.click();
-      
-      // Cleanup
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
@@ -244,23 +236,26 @@ export default function InvoiceDetailPage() {
     );
   }
 
- const subtotal = invoice.subtotal;
-const vatAmount = invoice.vatAmount;
-const total = invoice.amount;
-const isReverseCharge = invoice.reverseCharge;
-const isOverdue = invoice.dueDate && new Date(invoice.dueDate) < new Date() && invoice.status !== 'PAID';
+  const subtotal = invoice.subtotal;
+  const vatAmount = invoice.vatAmount;
+  const total = invoice.amount;
+  const isReverseCharge = invoice.reverseCharge;
+  const isOverdue = invoice.dueDate && new Date(invoice.dueDate) < new Date() && invoice.status !== 'PAID';
 
-// Calculate VAT rate to display
-const displayVatRate = (() => {
-  if (invoice.vatRate) {
-    return invoice.vatRate >= 1 ? invoice.vatRate : invoice.vatRate * 100;
-  } else if (invoice.items && invoice.items.length > 0 && invoice.items[0].vatRate !== undefined) {
-    return invoice.items[0].vatRate;
-  } else if (subtotal > 0 && vatAmount > 0) {
-    return (vatAmount / subtotal) * 100;
-  }
-  return 21;
-})();
+  const displayVatRate = (() => {
+    if (invoice.vatRate) {
+      return invoice.vatRate >= 1 ? invoice.vatRate : invoice.vatRate * 100;
+    } else if (invoice.items && invoice.items.length > 0 && invoice.items[0].vatRate !== undefined) {
+      return invoice.items[0].vatRate;
+    } else if (subtotal > 0 && vatAmount > 0) {
+      return (vatAmount / subtotal) * 100;
+    }
+    return 21;
+  })();
+
+  // Cast to any once to avoid repeated casts throughout
+  const client = invoice.client as any;
+  const project = invoice.project as any;
 
   return (
     <ProtectedRoute>
@@ -276,8 +271,8 @@ const displayVatRate = (() => {
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900">{invoice.invoiceNumber}</h1>
                 <p className="text-sm text-gray-600">
-                  {invoice.client?.name || 'No client'}
-                  {invoice.project?.title && ` • ${invoice.project.title}`}
+                  {client?.name || 'No client'}
+                  {project?.title && ` • ${project.title}`}
                 </p>
               </div>
               <div className={`px-3 py-1.5 rounded-lg border-2 font-semibold text-xs ${statusColors[invoice.status]}`}>
@@ -285,28 +280,25 @@ const displayVatRate = (() => {
               </div>
             </div>
 
-            {/* Action Buttons - Streamlined */}
+            {/* Action Buttons */}
             <div className="flex items-center gap-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
-              {/* Primary Actions */}
               <div className="flex gap-2 flex-1 flex-wrap">
-                {/* Send Invoice - Primary CTA */}
                 {invoice.status !== 'PAID' && (
                   <button 
                     onClick={handleSendInvoice}
-                    disabled={actionLoading || !invoice.client?.email}
+                    disabled={actionLoading || !client?.email}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shadow-sm"
-                    title={!invoice.client?.email ? 'Client has no email address' : 'Send invoice via email'}
+                    title={!client?.email ? 'Client has no email address' : 'Send invoice via email'}
                   >
                     <Mail className="h-4 w-4" />
                     <span className="hidden sm:inline">Send</span>
                   </button>
                 )}
 
-                {/* Send Reminder - Only for SENT/OVERDUE */}
                 {(invoice.status === 'SENT' || invoice.status === 'OVERDUE') && (
                   <button 
                     onClick={handleSendReminder}
-                    disabled={actionLoading || !invoice.client?.email}
+                    disabled={actionLoading || !client?.email}
                     className="flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition disabled:opacity-50 font-medium text-sm border border-amber-300"
                   >
                     <Clock className="h-4 w-4" />
@@ -314,7 +306,6 @@ const displayVatRate = (() => {
                   </button>
                 )}
 
-                {/* Mark as Paid */}
                 {invoice.status !== 'PAID' && (
                   <button 
                     onClick={handleMarkAsPaid}
@@ -326,7 +317,6 @@ const displayVatRate = (() => {
                   </button>
                 )}
 
-                {/* Edit */}
                 <Link 
                   href={`/invoices/${invoice.id}/edit`} 
                   className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm"
@@ -348,15 +338,11 @@ const displayVatRate = (() => {
 
                 {showActionsMenu && (
                   <>
-                    {/* Backdrop */}
                     <div 
                       className="fixed inset-0 z-10" 
                       onClick={() => setShowActionsMenu(false)}
                     />
-                    
-                    {/* Dropdown Menu */}
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                      {/* Status Change */}
                       {invoice.status !== 'PAID' && (
                         <div className="px-3 py-2 border-b border-gray-100">
                           <label className="block text-xs font-medium text-gray-500 mb-1">Change Status</label>
@@ -422,17 +408,15 @@ const displayVatRate = (() => {
           <div className="invoice-document bg-white rounded-xl border-2 border-gray-200 p-8 sm:p-12 print:border-0 print:p-0 shadow-sm">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row justify-between gap-8 mb-12">
-              {/* Left: Invoice Title & Number */}
               <div>
                 <h1 className="text-4xl font-bold text-gray-900 mb-2">INVOICE</h1>
                 <p className="text-2xl font-semibold text-gray-900 mb-4">{invoice.invoiceNumber}</p>
-                {/* Status badge - HIDDEN on print */}
                 <div className={`inline-block px-4 py-2 rounded-lg border-2 font-semibold text-sm print:hidden ${statusColors[invoice.status]}`}>
                   {invoice.status}
                 </div>
               </div>
 
-              {/* Right: Business Info (From) */}
+              {/* Business Info */}
               <div className="text-left md:text-right">
                 {invoice.business?.businessName ? (
                   <>
@@ -464,64 +448,64 @@ const displayVatRate = (() => {
             </div>
 
             {/* Bill To & Invoice Details */}
-<div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-  {/* Bill To */}
-  <div>
-    <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Bill To</p>
-    {invoice.client ? (
-      <div className="space-y-1">
-        <p className="text-lg font-semibold text-gray-900">{invoice.client.name}</p>
-        {invoice.client.company && <p className="text-gray-900">{invoice.client.company}</p>}
-        {(invoice.client as any).address && <p className="text-gray-900">{(invoice.client as any).address}</p>}
-        {((invoice.client as any).postalCode || (invoice.client as any).city) && (
-          <p className="text-gray-900">
-            {(invoice.client as any).postalCode} {(invoice.client as any).city}
-          </p>
-        )}
-        {invoice.client.country && <p className="text-gray-900">{invoice.client.country}</p>}
-        {invoice.client.email && <p className="text-gray-600 mt-2">{invoice.client.email}</p>}
-        {invoice.client.vatNumber && (
-          <p className="text-gray-900 font-semibold mt-2">VAT: {invoice.client.vatNumber}</p>
-        )}
-      </div>
-    ) : (
-      <p className="text-gray-400 italic">No client information</p>
-    )}
-  </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+              {/* Bill To */}
+              <div>
+                <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Bill To</p>
+                {client ? (
+                  <div className="space-y-1">
+                    <p className="text-lg font-semibold text-gray-900">{client.name}</p>
+                    {client.company && <p className="text-gray-900">{client.company}</p>}
+                    {client.address && <p className="text-gray-900">{client.address}</p>}
+                    {(client.postalCode || client.city) && (
+                      <p className="text-gray-900">
+                        {client.postalCode} {client.city}
+                      </p>
+                    )}
+                    {client.country && <p className="text-gray-900">{client.country}</p>}
+                    {client.email && <p className="text-gray-600 mt-2">{client.email}</p>}
+                    {client.vatNumber && (
+                      <p className="text-gray-900 font-semibold mt-2">VAT: {client.vatNumber}</p>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 italic">No client information</p>
+                )}
+              </div>
 
-  {/* Invoice Details */}
-  <div className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl space-y-3 border-2 border-gray-200 print:bg-gray-50 print:border-gray-300">
-    {invoice.project && (
-      <div className="flex justify-between gap-4">
-        <span className="text-gray-700 font-medium">Project:</span>
-        <span className="font-semibold text-gray-900 text-right">{invoice.project.title}</span>
-      </div>
-    )}
-    <div className="flex justify-between">
-      <span className="text-gray-700 font-medium">Issue Date:</span>
-      <span className="font-semibold text-gray-900">
-        {new Date(invoice.issueDate).toLocaleDateString('en-GB')}
-      </span>
-    </div>
-    {invoice.dueDate && (
-      <div className="flex justify-between">
-        <span className="text-gray-700 font-medium">Due Date:</span>
-        <span className={`font-semibold ${isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
-          {new Date(invoice.dueDate).toLocaleDateString('en-GB')}
-          {isOverdue && ' (Overdue)'}
-        </span>
-      </div>
-    )}
-    {invoice.status === 'PAID' && invoice.paidDate && (
-      <div className="flex justify-between pt-2 border-t-2 border-emerald-300">
-        <span className="text-emerald-700 font-medium">Paid Date:</span>
-        <span className="font-semibold text-emerald-700">
-          {new Date(invoice.paidDate).toLocaleDateString('en-GB')}
-        </span>
-      </div>
-    )}
-  </div>
-</div>
+              {/* Invoice Details */}
+              <div className="p-6 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl space-y-3 border-2 border-gray-200 print:bg-gray-50 print:border-gray-300">
+                {project && (
+                  <div className="flex justify-between gap-4">
+                    <span className="text-gray-700 font-medium">Project:</span>
+                    <span className="font-semibold text-gray-900 text-right">{project.title}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-gray-700 font-medium">Issue Date:</span>
+                  <span className="font-semibold text-gray-900">
+                    {new Date(invoice.issueDate).toLocaleDateString('en-GB')}
+                  </span>
+                </div>
+                {invoice.dueDate && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 font-medium">Due Date:</span>
+                    <span className={`font-semibold ${isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
+                      {new Date(invoice.dueDate).toLocaleDateString('en-GB')}
+                      {isOverdue && ' (Overdue)'}
+                    </span>
+                  </div>
+                )}
+                {invoice.status === 'PAID' && invoice.paidDate && (
+                  <div className="flex justify-between pt-2 border-t-2 border-emerald-300">
+                    <span className="text-emerald-700 font-medium">Paid Date:</span>
+                    <span className="font-semibold text-emerald-700">
+                      {new Date(invoice.paidDate).toLocaleDateString('en-GB')}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Line Items Table */}
             {invoice.items && invoice.items.length > 0 ? (
@@ -554,7 +538,7 @@ const displayVatRate = (() => {
                         <td className="py-4 text-right text-gray-900">€{item.unitPrice.toFixed(2)}</td>
                         <td className="py-4 text-right text-gray-600">{item.vatRate}%</td>
                         <td className="py-4 text-right font-semibold text-gray-900">
-                          €{((item.amount || 0)).toFixed(2)}
+                          €{(item.amount || 0).toFixed(2)}
                         </td>
                       </tr>
                     ))}
@@ -564,49 +548,49 @@ const displayVatRate = (() => {
             ) : (
               <div className="mb-12 p-6 bg-gray-50 rounded-xl border border-gray-200">
                 <p className="font-semibold text-gray-900">Service Provided</p>
-                {invoice.project?.description && (
-                  <p className="text-gray-700 mt-1">{invoice.project.description}</p>
+                {project?.description && (
+                  <p className="text-gray-700 mt-1">{project.description}</p>
                 )}
               </div>
             )}
 
-  {/* Totals */}
-<div className="flex justify-end mb-12">
-  <div className="w-full max-w-md space-y-3">
-    <div className="flex justify-between text-gray-900 text-lg">
-      <span className="font-medium">Subtotal:</span>
-      <span className="font-semibold">€{subtotal.toFixed(2)}</span>
-    </div>
-    {isReverseCharge ? (
-      <div className="flex justify-between text-gray-900">
-        <span className="font-medium">VAT (0% - Reverse Charge):</span>
-        <span className="font-semibold">€0.00</span>
-      </div>
-    ) : (
-      <div className="flex justify-between text-gray-900">
-        <span className="font-medium">
-          VAT ({
-            invoice.items && invoice.items.length > 0 && invoice.items[0].vatRate
-              ? invoice.items[0].vatRate
-              : subtotal > 0 && vatAmount > 0
-              ? ((vatAmount / subtotal) * 100).toFixed(0)
-              : '21'
-          }%):
-        </span>
-        <span className="font-semibold">€{vatAmount.toFixed(2)}</span>
-      </div>
-    )}
-    <div className="flex justify-between pt-4 border-t-2 border-gray-900 text-2xl font-bold text-gray-900">
-      <span>Total:</span>
-      <span>€{total.toFixed(2)}</span>
-    </div>
-    {isReverseCharge && (
-      <p className="text-sm text-gray-600 italic pt-2">
-        * Reverse charge applies - VAT to be accounted for by recipient
-      </p>
-    )}
-  </div>
-</div>
+            {/* Totals */}
+            <div className="flex justify-end mb-12">
+              <div className="w-full max-w-md space-y-3">
+                <div className="flex justify-between text-gray-900 text-lg">
+                  <span className="font-medium">Subtotal:</span>
+                  <span className="font-semibold">€{subtotal.toFixed(2)}</span>
+                </div>
+                {isReverseCharge ? (
+                  <div className="flex justify-between text-gray-900">
+                    <span className="font-medium">VAT (0% - Reverse Charge):</span>
+                    <span className="font-semibold">€0.00</span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between text-gray-900">
+                    <span className="font-medium">
+                      VAT ({
+                        invoice.items && invoice.items.length > 0 && invoice.items[0].vatRate
+                          ? invoice.items[0].vatRate
+                          : subtotal > 0 && vatAmount > 0
+                          ? ((vatAmount / subtotal) * 100).toFixed(0)
+                          : '21'
+                      }%):
+                    </span>
+                    <span className="font-semibold">€{vatAmount.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between pt-4 border-t-2 border-gray-900 text-2xl font-bold text-gray-900">
+                  <span>Total:</span>
+                  <span>€{total.toFixed(2)}</span>
+                </div>
+                {isReverseCharge && (
+                  <p className="text-sm text-gray-600 italic pt-2">
+                    * Reverse charge applies - VAT to be accounted for by recipient
+                  </p>
+                )}
+              </div>
+            </div>
 
             {/* Notes */}
             {invoice.notes && (
@@ -618,7 +602,7 @@ const displayVatRate = (() => {
               </div>
             )}
 
-            {/* Paid Badge - Only show when actually PAID */}
+            {/* Paid Badge */}
             {invoice.status === 'PAID' && invoice.paidDate && (
               <div className="mb-8 p-4 bg-emerald-50 border-2 border-emerald-300 rounded-xl print:bg-green-50">
                 <p className="text-emerald-800 font-semibold flex items-center gap-2">
@@ -659,7 +643,7 @@ const displayVatRate = (() => {
                 This will send invoice <strong>{invoice.invoiceNumber}</strong> to:
               </p>
               <p className="text-gray-900 font-semibold mb-4">
-                {invoice.client?.email}
+                {client?.email}
               </p>
               
               {invoice.status === 'DRAFT' && (
@@ -705,7 +689,7 @@ const displayVatRate = (() => {
                 <strong>{invoice.invoiceNumber}</strong> to:
               </p>
               <p className="text-gray-900 font-semibold mb-6">
-                {invoice.client?.email}
+                {client?.email}
               </p>
 
               <div className="flex gap-3">
@@ -736,52 +720,36 @@ const displayVatRate = (() => {
               size: A4;
               margin: 20mm 15mm;
             }
-            
-            /* Hide EVERYTHING except the invoice */
             body * {
               visibility: hidden;
             }
-            
-            /* Show only the invoice document and its children */
             .invoice-document,
             .invoice-document * {
               visibility: visible;
             }
-            
-            /* Position invoice at top of page */
             .invoice-document {
               position: absolute;
               left: 0;
               top: 0;
               width: 100%;
             }
-            
-            /* Ensure colors print correctly */
             * {
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
-            
-            /* Remove gradients for print */
             .bg-gradient-to-br {
               background: #f9fafb !important;
               border-color: #e5e7eb !important;
             }
-            
-            /* Clean backgrounds */
             .bg-blue-50 {
               background: #f9fafb !important;
             }
-            
             .border-blue-200 {
               border-color: #e5e7eb !important;
             }
-            
             .text-blue-900 {
               color: #111827 !important;
             }
-            
-            /* Prevent page breaks inside important sections */
             .invoice-header,
             .info-section,
             .items-table,
@@ -791,18 +759,13 @@ const displayVatRate = (() => {
             .invoice-footer {
               page-break-inside: avoid;
             }
-            
-            /* Keep table rows together */
             .items-table tr {
               page-break-inside: avoid;
             }
-            
-            /* Remove rounded corners and shadows for print */
             .rounded-xl,
             .rounded-lg {
               border-radius: 0 !important;
             }
-            
             .shadow-sm {
               box-shadow: none !important;
             }
