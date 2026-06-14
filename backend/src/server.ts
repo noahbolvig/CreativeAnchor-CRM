@@ -33,6 +33,7 @@ app.use(cors({
     'http://localhost:3000',
     'http://localhost:3001',
     process.env.FRONTEND_URL || '',
+    'https://animated-lokum-22de2d.netlify.app',
   ].filter(Boolean),
   credentials: true,
 }));
