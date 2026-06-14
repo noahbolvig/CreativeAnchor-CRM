@@ -8,10 +8,11 @@ import Link from 'next/link';
 
 export default function SettingsPage() {
   const { user } = useAuth();
+  const anyUser = user as any;
 
   // Check completion status
-  const hasBusinessInfo = user?.businessName && user?.vatNumber && user?.address;
-  const hasFullProfile = user?.firstName && user?.lastName;
+  const hasBusinessInfo = anyUser?.businessName && anyUser?.vatNumber && anyUser?.address;
+  const hasFullProfile = anyUser?.firstName && anyUser?.lastName;
 
   const settingsSections = [
     {
@@ -98,15 +99,15 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {user?.firstName && user?.lastName 
-                      ? `${user.firstName} ${user.lastName}` 
+                    {anyUser?.firstName && anyUser?.lastName
+                      ? `${anyUser.firstName} ${anyUser.lastName}`
                       : 'Welcome!'}
                   </h3>
-                  <p className="text-sm text-gray-700 mb-2">{user?.email}</p>
-                  {user?.businessName && (
+                  <p className="text-sm text-gray-700 mb-2">{anyUser?.email}</p>
+                  {anyUser?.businessName && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Building2 className="h-4 w-4" />
-                      <span>{user.businessName}</span>
+                      <span>{anyUser.businessName}</span>
                     </div>
                   )}
                 </div>
@@ -119,7 +120,7 @@ export default function SettingsPage() {
                   <span className="text-lg font-bold text-gray-900">{completionPercentage}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div 
+                  <div
                     className="bg-gradient-to-r from-blue-600 to-purple-600 h-2.5 rounded-full transition-all duration-500"
                     style={{ width: `${completionPercentage}%` }}
                   />
@@ -141,7 +142,7 @@ export default function SettingsPage() {
                   <p className="text-sm text-amber-800 mb-3">
                     You need to set up your business information before you can send invoices. EU law requires VAT numbers and complete addresses on all invoices.
                   </p>
-                  <Link 
+                  <Link
                     href="/settings/business"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium text-sm shadow-sm"
                   >
@@ -156,14 +157,14 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {settingsSections.map((section) => {
               const Icon = section.icon;
-              
+
               return (
                 <Link
                   key={section.id}
                   href={section.href}
                   className={`group bg-white rounded-xl border-2 p-6 hover:shadow-lg transition-all ${
-                    section.important && !section.completed 
-                      ? 'border-amber-300 bg-amber-50/30' 
+                    section.important && !section.completed
+                      ? 'border-amber-300 bg-amber-50/30'
                       : section.borderColor || 'border-gray-200'
                   }`}
                 >
@@ -178,11 +179,11 @@ export default function SettingsPage() {
                     </div>
                     <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
                   </div>
-                  
+
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     {section.name}
                   </h3>
-                  
+
                   <p className="text-sm text-gray-600 mb-3">
                     {section.description}
                   </p>
@@ -213,15 +214,15 @@ export default function SettingsPage() {
               Having trouble with your settings? Check our documentation or contact support.
             </p>
             <div className="flex gap-3">
-              <a 
-                href="https://docs.claude.com" 
-                target="_blank" 
+              <a
+                href="https://docs.claude.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium text-sm"
               >
                 View Docs
               </a>
-              <a 
+              <a
                 href="mailto:support@creativeanchor.com"
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm shadow-sm"
               >
@@ -233,4 +234,4 @@ export default function SettingsPage() {
       </DashboardLayout>
     </ProtectedRoute>
   );
-}
+}/*  */
